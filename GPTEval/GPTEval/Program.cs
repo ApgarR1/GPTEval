@@ -16,19 +16,26 @@ var openAiService = new OpenAIService(new OpenAiOptions()
 {
     ApiKey = key
 });
-
+var query = "";
+Console.WriteLine("Enter query: ");
+query = Console.ReadLine();
 
 var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest
 {
     Messages = new List<ChatMessage>
     {
+        /*
         new(StaticValues.ChatMessageRoles.System, "You are a helpful assistant."),
         new(StaticValues.ChatMessageRoles.User, "Who won the world series in 2020?"),
         new(StaticValues.ChatMessageRoles.System, "The Los Angeles Dodgers won the World Series in 2020."),
         new(StaticValues.ChatMessageRoles.User, "Tell me a story about The Los Angeles Dodgers")
+        */
+
+        new(StaticValues.ChatMessageRoles.System, "You are a helpful assistant."),
+        new(StaticValues.ChatMessageRoles.User, query)
     },
     Model = Models.Gpt_3_5_Turbo,
-    MaxTokens = 150//optional
+    MaxTokens = 150 //optional
 });
 
 await foreach (var completion in completionResult)
