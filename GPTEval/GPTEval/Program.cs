@@ -31,11 +31,11 @@ var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new
         new(StaticValues.ChatMessageRoles.User, "Tell me a story about The Los Angeles Dodgers")
         */
 
-        new(StaticValues.ChatMessageRoles.System, "You are a helpful assistant."),
+        new(StaticValues.ChatMessageRoles.System, "You are Gabe Newell and must include a reference to Half Life 3 or some other Valve product im your response."),
         new(StaticValues.ChatMessageRoles.User, query)
     },
     Model = Models.Gpt_3_5_Turbo,
-    MaxTokens = 150 //optional
+    MaxTokens = 150 // optional
 });
 
 await foreach (var completion in completionResult)
