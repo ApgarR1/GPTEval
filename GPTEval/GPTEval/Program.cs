@@ -16,10 +16,29 @@ var openAiService = new OpenAIService(new OpenAiOptions()
 {
     ApiKey = key
 });
+
 var query = "";
 Console.WriteLine("Enter query: ");
 query = Console.ReadLine();
 
+/* cannot use for loops inside of completionResult, so list cannot be accessed
+var userTyping = true;
+var query = "";
+var queries = new List<string>();
+Console.WriteLine("Enter query. If done, enter singular exclamation mark: ");
+while (userTyping)
+{
+    query = Console.ReadLine();
+    if (query == "!")
+    {
+        userTyping = false;
+    }
+    else
+    {
+        queries.Add(query);
+    }
+}
+*/
 var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest
 {
     Messages = new List<ChatMessage>
@@ -31,11 +50,13 @@ var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new
         new(StaticValues.ChatMessageRoles.User, "Tell me a story about The Los Angeles Dodgers")
         */
 
-        new(StaticValues.ChatMessageRoles.System, "You are Gabe Newell and must include a reference to Half Life 3 or some other Valve product im your response."),
+       
+        new(StaticValues.ChatMessageRoles.System, "You are a helpful assistant who is knowledgeable about many topics, including but not limited to electronics repair and programming. You must give examples for all solutions."),
         new(StaticValues.ChatMessageRoles.User, query)
+
     },
     Model = Models.Gpt_3_5_Turbo,
-    MaxTokens = 150 // optional
+    // MaxTokens = 150 (optional)
 });
 
 await foreach (var completion in completionResult)
