@@ -24,7 +24,7 @@ var openAiService = new OpenAIService(new OpenAiOptions()
 
 var webpage = "";
 var pageText = "";
-Console.WriteLine("Enter a webpage to get the meaning of the text. This webpage can be a news article, lyrics, etc.");
+Console.WriteLine("Enter a webpage to get the meaning of the text. This webpage can be a news article, Wikipedia page, etc.");
 Console.Write("> ");
 webpage = Console.ReadLine();
 
@@ -41,9 +41,9 @@ var htmlBody = htmlDoc.DocumentNode.SelectSingleNode("//body");
 pageText = htmlBody.InnerText;
 
 // TODO: testing
-// News Article (WORKS) - https://www.washingtonpost.com/technology/2023/11/23/x-musk-openai-altman-big-tech/
-// Lyrics - https://genius.com/Baby-keem-family-ties-lyrics
-// Recipe - https://www.allrecipes.com/recipe/23600/worlds-best-lasagna/
+// News Article (WORKING) - https://www.washingtonpost.com/technology/2023/11/23/x-musk-openai-altman-big-tech/
+// Lyrics (NOT WORKING) - https://genius.com/The-hillbillies-family-ties-lyrics
+// Recipe (WORKING) - https://www.allrecipes.com/recipe/23600/worlds-best-lasagna/
 // Wikipedia - https://en.wikipedia.org/wiki/ChatGPT
 var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest
 {
@@ -58,13 +58,12 @@ var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new
 
        
         new(StaticValues.ChatMessageRoles.System, "You are a helpful assistant who is very skilled at reading comprehension. You will be given text from a website which" +
-                                                  " you must read the contents of and give an explanation on what the author's meaning was and the idea of the text. If" +
-                                                  " the webpage is a page which contains lyrics to a song, you will read only the lyrics and give an explanation on what they mean."),
+                                                  " you must read the contents of and give an explanation on what the author's meaning was and the idea of the text."),
         new(StaticValues.ChatMessageRoles.User, pageText)
 
     },
-    Model = Models.Gpt_3_5_Turbo,
-    // MaxTokens = 150 (optional)
+    Model = Models.Gpt_3_5_Turbo_16k, // had to upgrade to 16k because of token limit
+    // MaxTokens = 10000 (optional)
 });
 
 await foreach (var completion in completionResult)
