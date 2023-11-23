@@ -3,7 +3,11 @@ using OpenAI.Managers;
 using OpenAI.ObjectModels.RequestModels;
 using OpenAI.ObjectModels;
 using OpenAI;
+using System;
+using System.Net;
+using System.IO;
 using System.Reflection;
+using HtmlAgilityPack;
 
 var builder = new ConfigurationBuilder()
     .AddUserSecrets(Assembly.GetExecutingAssembly())
@@ -17,28 +21,30 @@ var openAiService = new OpenAIService(new OpenAiOptions()
     ApiKey = key
 });
 
-var query = "";
-Console.WriteLine("Enter query: ");
-query = Console.ReadLine();
 
-/* cannot use for loops inside of completionResult, so list cannot be accessed
-var userTyping = true;
-var query = "";
-var queries = new List<string>();
-Console.WriteLine("Enter query. If done, enter singular exclamation mark: ");
-while (userTyping)
-{
-    query = Console.ReadLine();
-    if (query == "!")
-    {
-        userTyping = false;
-    }
-    else
-    {
-        queries.Add(query);
-    }
+var webpage = "";
+var pageText = "";
+Console.WriteLine("Enter a webpage to get the meaning of the text. This webpage can be a news article, lyrics, etc.");
+Console.Write("> ");
+webpage = Console.ReadLine();
+
+// get webpage text
+using (HttpClient client = new HttpClient())
+{ 
+    pageText = await client.GetStringAsync(webpage);
 }
-*/
+
+// extract text from webpage with HtmlAgilityPack
+var htmlDoc = new HtmlDocument(); 
+htmlDoc.LoadHtml(pageText); 
+var htmlBody = htmlDoc.DocumentNode.SelectSingleNode("//body"); 
+pageText = htmlBody.InnerText;
+
+// TODO: testing
+// News Article (WORKS) - https://www.washingtonpost.com/technology/2023/11/23/x-musk-openai-altman-big-tech/
+// Lyrics - https://genius.com/Baby-keem-family-ties-lyrics
+// Recipe - https://www.allrecipes.com/recipe/23600/worlds-best-lasagna/
+// Wikipedia - https://en.wikipedia.org/wiki/ChatGPT
 var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest
 {
     Messages = new List<ChatMessage>
@@ -51,8 +57,10 @@ var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new
         */
 
        
-        new(StaticValues.ChatMessageRoles.System, "You are a helpful assistant who is knowledgeable about many topics, including but not limited to electronics repair and programming. You must give examples for all solutions."),
-        new(StaticValues.ChatMessageRoles.User, query)
+        new(StaticValues.ChatMessageRoles.System, "You are a helpful assistant who is very skilled at reading comprehension. You will be given text from a website which" +
+                                                  " you must read the contents of and give an explanation on what the author's meaning was and the idea of the text. If" +
+                                                  " the webpage is a page which contains lyrics to a song, you will read only the lyrics and give an explanation on what they mean."),
+        new(StaticValues.ChatMessageRoles.User, pageText)
 
     },
     Model = Models.Gpt_3_5_Turbo,
