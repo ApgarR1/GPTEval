@@ -28,7 +28,7 @@ Console.WriteLine("Enter a webpage to get the meaning of the text. This webpage 
 Console.Write("> ");
 webpage = Console.ReadLine();
 
-// check if link is valid, if not return error
+// check if link is valid, if not return error (tried using HttpClient but it would exit after an invalid link)
 var linkCheck = false;
 while (!linkCheck)
 {
