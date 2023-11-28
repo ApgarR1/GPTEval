@@ -28,13 +28,42 @@ Console.WriteLine("Enter a webpage to get the meaning of the text. This webpage 
 Console.Write("> ");
 webpage = Console.ReadLine();
 
-// get webpage text
+// check if link is valid, if not return error
+var linkCheck = false;
+while (!linkCheck)
+{
+    try
+    {
+        var request = (HttpWebRequest)WebRequest.Create(webpage);
+        request.Method = "HEAD";
+        using (var response = request.GetResponse() as HttpWebResponse)
+        {
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                Console.WriteLine("Invalid link. Please try again:");
+                Console.Write("> ");
+                webpage = Console.ReadLine();
+            }
+            else
+            {
+                linkCheck = true;
+            }
+        }
+    }
+    catch (Exception)
+    {
+        Console.WriteLine("Invalid link. Please try again:");
+        Console.Write("> ");
+        webpage = Console.ReadLine();
+    }
+}
+// gets webpage text
 using (HttpClient client = new HttpClient())
 { 
     pageText = await client.GetStringAsync(webpage);
 }
 
-// extract text from webpage with HtmlAgilityPack
+// extracts only text from webpage
 var htmlDoc = new HtmlDocument(); 
 htmlDoc.LoadHtml(pageText); 
 var htmlBody = htmlDoc.DocumentNode.SelectSingleNode("//body"); 
