@@ -24,7 +24,7 @@ var openAiService = new OpenAIService(new OpenAiOptions()
 
 var webpage = "";
 var pageText = "";
-Console.WriteLine("Enter a webpage to get the meaning of the text. This webpage can be a news article, Wikipedia page, etc.");
+Console.WriteLine("Enter a webpage to get the meaning of the text. This webpage can be a news article, lyric page, etc. NOTE: Longer pages may not work.");
 Console.Write("> ");
 webpage = Console.ReadLine();
 
@@ -40,11 +40,12 @@ htmlDoc.LoadHtml(pageText);
 var htmlBody = htmlDoc.DocumentNode.SelectSingleNode("//body"); 
 pageText = htmlBody.InnerText;
 
-// TODO: testing
+// Testing Results:
 // News Article (WORKING) - https://www.washingtonpost.com/technology/2023/11/23/x-musk-openai-altman-big-tech/
-// Lyrics (NOT WORKING) - https://genius.com/The-hillbillies-family-ties-lyrics
+// Lyrics (WORKING) - https://genius.com/The-hillbillies-family-ties-lyrics
 // Recipe (WORKING) - https://www.allrecipes.com/recipe/23600/worlds-best-lasagna/
-// Wikipedia - https://en.wikipedia.org/wiki/ChatGPT
+// Wikipedia (WILL NOT WORK IF ARTICLE IS TOO LONG) - https://en.wikipedia.org/wiki/Hurricane_Irene_(2005)
+
 var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest
 {
     Messages = new List<ChatMessage>
@@ -62,8 +63,8 @@ var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new
         new(StaticValues.ChatMessageRoles.User, pageText)
 
     },
-    Model = Models.Gpt_3_5_Turbo_16k, // had to upgrade to 16k because of token limit
-    // MaxTokens = 10000 (optional)
+    Model = Models.Gpt_3_5_Turbo_16k // had to upgrade to 16k because of token limit. despite this, it won't work for pages with a lot of text
+                                     // 16k tokens is the max for me. breaking text into chunks doesn't work because gpt-3 doesn't remember other messages
 });
 
 await foreach (var completion in completionResult)
