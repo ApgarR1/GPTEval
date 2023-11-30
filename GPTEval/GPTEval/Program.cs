@@ -24,39 +24,39 @@ var openAiService = new OpenAIService(new OpenAiOptions()
 
 var webpage = "";
 var pageText = "";
-Console.WriteLine("Enter a webpage to get the meaning of the text. This webpage can be a news article, lyric page, etc. NOTE: Longer pages may not work.");
+Console.WriteLine("Enter a webpage to get the meaning of the text. This webpage can be a news article, lyric page, etc. NOTE: Longer pages, like wikipedia pages or books, may not work.");
 Console.Write("> ");
 webpage = Console.ReadLine();
 
-// check if link is valid, if not return error (tried using HttpClient but it would exit after an invalid link)
+// check if link is valid, if not return error
 var linkCheck = false;
-while (!linkCheck)
-{
-    try
+while(!linkCheck) 
+    using (HttpClient client = new HttpClient())
     {
-        var request = (HttpWebRequest)WebRequest.Create(webpage);
-        request.Method = "HEAD";
-        using (var response = request.GetResponse() as HttpWebResponse)
+        try
         {
-            if (response.StatusCode != HttpStatusCode.OK)
+            var request = await client.GetAsync(webpage);
+            if (request.StatusCode != HttpStatusCode.OK)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Invalid link. Please try again:");
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.Write("> ");
                 webpage = Console.ReadLine();
             }
             else
-            {
                 linkCheck = true;
-            }
+        }
+        catch (Exception)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Invalid link. Please try again:");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("> ");
+            webpage = Console.ReadLine();
         }
     }
-    catch (Exception)
-    {
-        Console.WriteLine("Invalid link. Please try again:");
-        Console.Write("> ");
-        webpage = Console.ReadLine();
-    }
-}
+
 // gets webpage text
 using (HttpClient client = new HttpClient())
 { 
@@ -69,25 +69,16 @@ htmlDoc.LoadHtml(pageText);
 var htmlBody = htmlDoc.DocumentNode.SelectSingleNode("//body"); 
 pageText = htmlBody.InnerText;
 
-// Testing Results:
+// Testing:
 // News Article (WORKING) - https://www.washingtonpost.com/technology/2023/11/23/x-musk-openai-altman-big-tech/
 // Lyrics (WORKING) - https://genius.com/The-hillbillies-family-ties-lyrics
-// Recipe (WORKING) - https://www.allrecipes.com/recipe/23600/worlds-best-lasagna/
 // Wikipedia (WILL NOT WORK IF ARTICLE IS TOO LONG) - https://en.wikipedia.org/wiki/Hurricane_Irene_(2005)
 
 var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest
 {
     Messages = new List<ChatMessage>
     {
-        /*
-        new(StaticValues.ChatMessageRoles.System, "You are a helpful assistant."),
-        new(StaticValues.ChatMessageRoles.User, "Who won the world series in 2020?"),
-        new(StaticValues.ChatMessageRoles.System, "The Los Angeles Dodgers won the World Series in 2020."),
-        new(StaticValues.ChatMessageRoles.User, "Tell me a story about The Los Angeles Dodgers")
-        */
-
-       
-        new(StaticValues.ChatMessageRoles.System, "You are a helpful assistant who is very skilled at reading comprehension. You will be given text from a website which" +
+        new(StaticValues.ChatMessageRoles.System, "You are a helpful assistant who is very skilled at reading comprehension. You will be given text from a website which" + 
                                                   " you must read the contents of and give an explanation on what the author's meaning was and the idea of the text."),
         new(StaticValues.ChatMessageRoles.User, pageText)
 
@@ -100,6 +91,7 @@ await foreach (var completion in completionResult)
 {
     if (completion.Successful)
     {
+        Console.ForegroundColor = ConsoleColor.Green;
         Console.Write(completion.Choices.First().Message.Content);
     }
     else
@@ -108,7 +100,7 @@ await foreach (var completion in completionResult)
         {
             throw new Exception("Unknown Error");
         }
-
+        Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine($"{completion.Error.Code}: {completion.Error.Message}");
     }
 }
